@@ -193,7 +193,7 @@
 @media (max-width: 768px) {
   .presentation-check-container {
     flex-direction: column;
-    height: 65vh;
+    height: 75vh;
 
   }
     .sidebar {
@@ -243,5 +243,13 @@
     width: 92vw;
     height: 51.75vw;
 
+  }
+  .loading-grid{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 92vw;
+    height: 51.75vw;
   }
 }
