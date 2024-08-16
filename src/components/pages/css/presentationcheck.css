@@ -11,8 +11,7 @@
 .slide-presentation-container{
   display: flex;
   flex-direction: row-reverse;
-  gap: 0;
-  margin-left: 4.5vw;
+  gap: 1vw;
 
 }
 
@@ -197,6 +196,10 @@
     height: 75vh;
 
   }
+
+  .slide-presentation-container .edit-button{
+    width: 100%;
+  }
     .sidebar {
       display: none;
       /* position: fixed; */
@@ -228,6 +231,7 @@
   .content {
     padding: 10px;
     order: 2; /* Make content appear second */
+
   }
   
 .content-section {
@@ -253,4 +257,12 @@
     width: 92vw;
     height: 51.75vw;
   }
+
+  .slide-presentation-container{
+    display: flex;
+    flex-direction: column;
+    gap: 1vw;
+  
+  }
+
 }
