@@ -1,10 +1,15 @@
+// File: FloatingButtons.js
 import React from "react";
 import { IconButton } from "@mui/material";
 import { Share as ShareIcon, SaveAlt as ExportIcon } from "@mui/icons-material";
 
 const FloatingButtons = ({ handleShare, handleExport }) => {
+  const handleClick = (action) => {
+    console.log(`Button clicked: ${action}`);
+  };
+// adarsh
   return (
-    <div className="w-[100vw] justify-around md:justify-normal md:w-[5vw] z-50 fixed bottom-[4vw] right-[0] flex flex-row md:flex-col md:bottom-[1.5vw] md:right-[1vw] md:space-y-4">
+    <div className="w-[100vw] justify-around md:justify-normal md:w-[5vw] z-50 fixed bottom-[4vw] right-[0] flex flex-row md:flex-col  md:bottom-[1.5vw] md:right-[1vw] md:space-y-4">
       <IconButton
         sx={{
           bgcolor: "gray.200",
@@ -16,7 +21,7 @@ const FloatingButtons = ({ handleShare, handleExport }) => {
           width: { xs: "15vw", md: "3.2vw" },
         }}
         aria-label="share"
-        onClick={handleShare} // Call handleShare directly
+        onClick={() => handleShare()}
       >
         <ShareIcon
           sx={{
@@ -38,7 +43,7 @@ const FloatingButtons = ({ handleShare, handleExport }) => {
           width: { xs: "15vw", md: "3.2vw" },
         }}
         aria-label="export"
-        onClick={handleExport} // Call handleExport directly
+        onClick={() => handleExport()}
       >
         <ExportIcon
           sx={{

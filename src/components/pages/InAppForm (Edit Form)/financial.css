@@ -176,8 +176,12 @@ button:focus {
 
 /* Responsive Design */
 @media (max-width: 600px) {
-    .sectionForm-financial {
+    .sectionForm-financial-container label{
+        font-size: 3vw;
+    }
+    .sectionForm-financial{
         padding: 4vw;
+        font-size: 3vw;
     }
 
     .sectionForm-table-contents th,
@@ -185,7 +189,7 @@ button:focus {
     .sectionForm-table-contents-useoffunds th,
     .sectionForm-table-contents-useoffunds td {
         padding: 3vw;
-        font-size: 1.1vw;
+        font-size: 3vw;
     }
 
     .sectionForm-table-contents input[type="number"],
