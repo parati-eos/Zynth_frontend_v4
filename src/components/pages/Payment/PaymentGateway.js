@@ -1,97 +1,96 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const PaymentGateway = ({ amount, productinfo, onSuccess, formId }) => {
-  const [paymentData, setPaymentData] = useState({
-    amount,
-    productinfo,
-    firstname: "Zynth",
-    email: localStorage.getItem("userEmail") || '',
-    phone: "1234567890",
-    formId,
-    currency: 'USD', // Default to USD
-  });
+const PaymentGateway = () => {
+  const amount = 100;
+  const productinfo = 'Test Product';
+  const firstname = 'adarsha';
+  const email = 'adarsha.halder02@gmail.com';
+  const phone = '1234567890';
 
-  useEffect(() => {
-    const detectCurrency = async () => {
-      try {
-        const response = await fetch('https://ipinfo.io/json?token=f0e9cf876d422e');
-        if (!response.ok) {
-          throw new Error('Failed to fetch location data');
-        }
-        const data = await response.json();
-        if (data.country === 'IN') {
-          setPaymentData(prevData => ({ ...prevData, currency: 'USD' }));
-        } else {
-          setPaymentData(prevData => ({ ...prevData, currency: 'INR' }));
-        }
-      } catch (error) {
-        console.error('Error detecting location:', error);
-        // Default to USD if there is an error (you can change this to INR if needed)
-        setPaymentData(prevData => ({ ...prevData, currency: 'USD' }));
-      }
-    };
+  const [hash, setHash] = useState('');
+  const [txnid, setTxnid] = useState('');
+  const [key, setKey] = useState('');
+  const [surl, setSurl] = useState('');
+  const [furl, setFurl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-    detectCurrency();
-  }, []);
-
-  const handlePayment = async () => {
+  const generateHash = async () => {
+    setLoading(true);
+    setError('');
     try {
-      console.log("Sending payment data to generate PayU hash:", paymentData);
-
-      // Ensure the currency is set correctly before proceeding
-      if (!paymentData.currency) {
-        alert('Currency is not set. Please try again.');
-        return;
-      }
-
-      const response = await fetch('https://v4-server.onrender.com/api/generate-payu-hash', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(paymentData),
+      const response = await axios.post('/api/generate-payu-hash', {
+        amount,
+        productinfo,
+        firstname,
+        email,
+        phone,
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      const { key, txnid, hash } = result;
-
-      const paymentForm = document.createElement('form');
-      paymentForm.setAttribute('action', 'https://secure.payu.in/_payment');
-      paymentForm.setAttribute('method', 'POST');
-      paymentForm.setAttribute('target', '_blank');
-
-      paymentForm.innerHTML = `
-        <input type="hidden" name="key" value="${key}" />
-        <input type="hidden" name="txnid" value="${txnid}" />
-        <input type="hidden" name="amount" value="${paymentData.amount}" />
-        <input type="hidden" name="productinfo" value="${paymentData.productinfo}" />
-        <input type="hidden" name="firstname" value="${paymentData.firstname}" />
-        <input type="hidden" name="email" value="${paymentData.email}" />
-        <input type="hidden" name="phone" value="${paymentData.phone}" />
-        <input type="hidden" name="surl" value="https://zynthtestai.web.app/payment-success?formId=${formId}" />
-        <input type="hidden" name="furl" value="https://zynthtestai.web.app/payment-failure" />
-        <input type="hidden" name="hash" value="${hash}" />
-        <input type="hidden" name="currency" value="${paymentData.currency}" />
-      `;
-
-      console.log("Submitting payment form with data:", paymentForm.innerHTML);
-      document.body.appendChild(paymentForm);
-      paymentForm.submit();
-      document.body.removeChild(paymentForm);
+      setHash(response.data.hash);
+      setTxnid(response.data.txnid);
+      setKey(response.data.key);
+      setSurl(response.data.surl);
+      setFurl(response.data.furl);
+      setMessage('Hash generated successfully. You can now make the payment.');
     } catch (error) {
-      console.error('Error generating PayU hash:', error);
-      alert('SORRY!\nWe were unable to process your payment\nError Reason: ' + error.message);
+      setError('Failed to generate hash. Please try again.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyPayment = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.post('/api/verify-payment', {
+        status: 'success',
+        txnid,
+        amount,
+        productinfo,
+        firstname,
+        email,
+        phone,
+        hash,
+      });
+      setMessage(response.data.verified ? 'Payment verified successfully.' : 'Payment verification failed.');
+    } catch (error) {
+      setError('Failed to verify payment. Please try again.');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <button id="payment-button" onClick={handlePayment} style={{ display: 'none' }}>
-      Pay and Download
-    </button>
+    <div>
+      <button onClick={generateHash} disabled={loading}>
+        {loading ? 'Generating Hash...' : 'Generate Hash'}
+      </button>
+      <button onClick={verifyPayment} disabled={loading || !hash}>
+        {loading ? 'Verifying Payment...' : 'Verify Payment'}
+      </button>
+      {message && <p>{message}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {hash && key && txnid && surl && furl && (
+        <form action="https://secure.payu.in/_payment" method="post">
+          <input type="hidden" name="key" value={key} />
+          <input type="hidden" name="txnid" value={txnid} />
+          <input type="hidden" name="amount" value={amount} />
+          <input type="hidden" name="productinfo" value={productinfo} />
+          <input type="hidden" name="firstname" value={firstname} />
+          <input type="hidden" name="email" value={email} />
+          <input type="hidden" name="phone" value={phone} />
+          <input type="hidden" name="surl" value={surl} />
+          <input type="hidden" name="furl" value={furl} />
+          <input type="hidden" name="hash" value={hash} />
+          <button type="submit">Make Payment</button>
+        </form>
+      )}
+    </div>
   );
 };
 
