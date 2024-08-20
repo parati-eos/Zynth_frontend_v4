@@ -10,7 +10,6 @@ import FloatingButtons from "./FloatingButtons.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTimes } from "@fortawesome/free-solid-svg-icons";
 import InAppForm from "../InAppForm (Edit Form)/inAppForm.js";
-import PaymentGateway from "../Payment/PaymentGateway.js";
 
 const slides = [
   "Cover",
@@ -66,26 +65,19 @@ const PresentationCheck = () => {
       if (!formId) {
         throw new Error("Form ID not found in localStorage");
       }
-  
       const serverurl = process.env.REACT_APP_SERVER_URL;
       const response = await fetch(`${serverurl}/slides/url?formId=${formId}`);
-  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
       const result = await response.json();
-      console.log("Result:", result);
-  
-      // Ensure the response is an object and contains the PresentationURL
-      const url = result.PresentationURL;
-      console.log("URL:", url);
-  
+      if (!Array.isArray(result) || result.length < 3) {
+        throw new Error("Invalid response format");
+      }
+      const url = result[2];
       if (!url || typeof url !== "string") {
         throw new Error("Invalid URL in response");
       }
-  
-      // Open the URL in the current tab
       window.open(url, "_blank");
     } catch (error) {
       console.error("Error exporting presentation:", error);
@@ -94,7 +86,7 @@ const PresentationCheck = () => {
       );
     }
   };
-  
+
   const handleShare = () => {
     const uniqueShareableUrl = `https://zynth.ai/share?submissionId=${formId}`;
     if (navigator.share) {
@@ -151,33 +143,6 @@ const PresentationCheck = () => {
       alert(`Failed to trigger for ${section}: ${error.message}`);
     }
   };
-  const checkPaymentStatusAndProceed = async () => {
-    try {
-      const response = await fetch(`https://v4-server.onrender.com/slides/url?formId=${formId}`);
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      console.log("API response data:", data); // Debugging line
-  
-      if (data && data.paymentStatus === 1) {
-        // Payment has already been made, run handleDownload
-        handleDownload();
-      } else if (data && data.paymentStatus === 0) {
-        // Payment is not made, open the payment gateway
-        document.getElementById('payment-button').click();
-      } else {
-        alert("Unable to determine payment status.");
-      }
-    } catch (error) {
-      console.error("Error checking payment status:", error);
-      alert("Error checking payment status. Please try again.");
-    }
-  };
-  
-  
 
   const RenderSlideContent = (slide) => {
     const [sectionSubmitStatus, setSectionSubmitStatus] = useState({});
@@ -391,23 +356,19 @@ const PresentationCheck = () => {
         );
       }
     } else {
-      // &&
-      //   ( FetchedData[0][1] === "error" ||
-      //    FetchedData[0][1] === null)
-
       if (inAppForm ) {
         return (
           <div className="w-full h-full flex justify-center items-center">
             {!showForm && (
               <div className="w-[80vw] md:w-[30vw] flex flex-col justify-center items-center">
-                <div className="h-max w-max flex justify-center items-center border border-blue-600 rounded-[50%]">
+                <div className="h-[15vw] w-[15vw] md:h-max md:w-max flex justify-center items-center border border-blue-600 rounded-[50%]">
                   <IconButton
                     onClick={() => setShowForm(true)}
                     color="inherit"
                     aria-label="add"
                     sx={{
                       fontSize: { xs: 30, sm: 40 },
-                      color: { xs: "white", sm: "white" },
+                      color: { xs: "white", sm: "white" }
                     }}
                   >
                     <AddIcon fontSize="inherit" />
@@ -548,13 +509,7 @@ const PresentationCheck = () => {
       </div>
       <FloatingButtons
         handleShare={handleShare}
-        handleExport={checkPaymentStatusAndProceed}
-      />
-      <PaymentGateway
-        amount="999"
-        productinfo="Presentation Export"
-        onSuccess={handleDownload}
-        formId={formId}
+        handleExport={handleDownload}
       />
     </div>
   );
